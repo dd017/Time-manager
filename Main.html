@@ -8,187 +8,111 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
-        }
-
-        .container {
-            background-color: #fff;
             padding: 20px;
-            border-radius: 8px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
+        }
+        h1 {
             text-align: center;
+            color: #333;
         }
-
-        .task-creation input {
-            width: 80%;
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        form {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
-
-        .task-creation button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .task-creation button:hover {
-            background-color: #0056b3;
-        }
-
-        .task-list {
-            margin-top: 20px;
-        }
-
-        .task-list ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        .task-list li {
+        input[type="text"], input[type="date"], input[type="time"] {
             padding: 10px;
-            border-bottom: 1px solid #ddd;
+            width: calc(33% - 10px);
+            margin-right: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
-
-        .timer {
-            margin-top: 20px;
+        input[type="text"]:last-child, input[type="date"]:last-child, input[type="time"]:last-child {
+            margin-right: 0;
         }
-
-        #timer {
-            font-size: 24px;
-            margin-top: 10px;
-        }
-
-        button.start-btn {
-            padding: 5px 10px;
-            margin-left: 10px;
+        button {
+            padding: 10px;
             background-color: #28a745;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
         }
-
-        button.start-btn:hover {
-            background-color: #218838;
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            background: #f4f4f4;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 5px solid #28a745;
+        }
+        .calendar {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .calendar div {
+            width: 14%;
+            background: #ddd;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Time Manager App</h1>
-        <div class="task-creation">
-            <input type="text" id="taskName" placeholder="Task Name">
-            <input type="time" id="startTime">
-            <input type="time" id="endTime">
-            <button onclick="addTask()">Add Task</button>
-        </div>
-        <div class="task-list">
-            <h2>Today's Tasks</h2>
-            <ul id="taskList"></ul>
-        </div>
-        <div class="timer">
-            <h2>Current Task</h2>
-            <div id="currentTask">No active task</div>
-            <div id="timer">00:00:00</div>
+        <form id="taskForm">
+            <input type="text" id="taskName" placeholder="Task Name" required>
+            <input type="date" id="taskDate" required>
+            <input type="time" id="taskTime" required>
+            <button type="submit">Add Task</button>
+        </form>
+        <ul id="taskList">
+            <!-- Tasks will be displayed here -->
+        </ul>
+        <div class="calendar">
+            <!-- Simple Calendar View -->
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+            <div>Sun</div>
         </div>
     </div>
 
     <script>
-        let tasks = [];
-        let timerInterval;
-        let currentTaskIndex = -1;
-
-        function addTask() {
+        document.getElementById('taskForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get the task details
             const taskName = document.getElementById('taskName').value;
-            const startTime = document.getElementById('startTime').value;
-            const endTime = document.getElementById('endTime').value;
+            const taskDate = document.getElementById('taskDate').value;
+            const taskTime = document.getElementById('taskTime').value;
 
-            if (taskName && startTime && endTime) {
-                const task = { taskName, startTime, endTime, completed: false };
-                tasks.push(task);
-                document.getElementById('taskName').value = '';
-                document.getElementById('startTime').value = '';
-                document.getElementById('endTime').value = '';
-                renderTasks();
-            } else {
-                alert('Please fill out all fields');
-            }
-        }
-
-        function renderTasks() {
-            const taskList = document.getElementById('taskList');
-            taskList.innerHTML = '';
-
-            tasks.forEach((task, index) => {
-                const li = document.createElement('li');
-                li.innerText = `${task.taskName} (${task.startTime} - ${task.endTime})`;
-                if (!task.completed) {
-                    const startButton = document.createElement('button');
-                    startButton.innerText = 'Start';
-                    startButton.className = 'start-btn';
-                    startButton.onclick = () => startTask(index);
-                    li.appendChild(startButton);
-                } else {
-                    li.style.textDecoration = 'line-through';
-                }
-                taskList.appendChild(li);
-            });
-        }
-
-        function startTask(index) {
-            if (currentTaskIndex !== -1) {
-                tasks[currentTaskIndex].completed = true;
-            }
-
-            currentTaskIndex = index;
-            const currentTask = tasks[currentTaskIndex];
-            document.getElementById('currentTask').innerText = currentTask.taskName;
-
-            clearInterval(timerInterval);
-            startTimer(currentTask.startTime, currentTask.endTime);
-
-            renderTasks();
-        }
-
-        function startTimer(startTime, endTime) {
-            const [endHours, endMinutes] = endTime.split(':').map(Number);
-            const endTimeInMinutes = endHours * 60 + endMinutes;
-
-            timerInterval = setInterval(() => {
-                const currentTime = new Date();
-                const currentHours = currentTime.getHours();
-                const currentMinutes = currentTime.getMinutes();
-                const currentTimeInMinutes = currentHours * 60 + currentMinutes;
-
-                let remainingMinutes = endTimeInMinutes - currentTimeInMinutes;
-
-                if (remainingMinutes <= 0) {
-                    clearInterval(timerInterval);
-                    document.getElementById('timer').innerText = '00:00:00';
-                    tasks[currentTaskIndex].completed = true;
-                    renderTasks();
-                } else {
-                    const hours = Math.floor(remainingMinutes / 60);
-                    const minutes = remainingMinutes % 60;
-                    const seconds = currentTime.getSeconds();
-                    document.getElementById('timer').innerText = `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
-                }
-            }, 1000);
-        }
-
-        function padZero(num) {
-            return num.toString().padStart(2, '0');
-        }
+            // Create a new list item
+            const li = document.createElement('li');
+            li.textContent = `${taskName} - ${taskDate} at ${taskTime}`;
+            
+            // Add the new task to the task list
+            document.getElementById('taskList').appendChild(li);
+            
+            // Clear the form
+            document.getElementById('taskForm').reset();
+        });
     </script>
 </body>
 </html>
